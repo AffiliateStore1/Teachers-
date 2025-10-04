@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Teachers Chat App (Secure)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        /* CSS कोड: Glassmorphism Theme */
+        :root {
+            --neon-pink: #FF69B4; 
+            --neon-blue: #00FFFF; 
+            --dark-bg: #1A0B2E; 
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --text-light: #f0f0f0;
+            --text-dark: #333333;
+            --chat-user-bg: rgba(100, 100, 255, 0.3); 
+            --chat-ai-bg: rgba(255, 100, 150, 0.3); 
+            --blur-level: 15px;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--dark-bg);
+            color: var(--text-light);
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-image: radial-gradient(circle at 10% 50%, rgba(132, 0, 255, 0.15) 0%, transparent 50%),
+                              radial-gradient(circle at 90% 80%, rgba(255, 69, 0, 0.1) 0%, transparent 50%);
+            background-attachment: fixed;
+            overflow: hidden;
+        }
+        
+        .decoration-sphere {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.6;
+            animation: moveSphere 20s infinite alternate;
+        }
+        .sphere-1 { top: 10%; left: 5%; background: var(--neon-blue); }
+        .sphere-2 { bottom: 5%; right: 15%; background: var(--neon-pink); animation-delay: -5s; }
+        .sphere-3 { top: 60%; left: 80%; background: #9B59B6; animation-delay: -10s; }
+        .decoration-spiral {
+            position: absolute;
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: rotateSpiral 30s linear infinite;
+        }
+        .spiral-1 { top: 20%; right: 5%; width: 80px; height: 80px; transform: scaleX(-1); animation-delay: -3s; }
+        .spiral-2 { bottom: 10%; left: 10%; width: 120px; height: 120px; animation-delay: -8s; }
+
+        @keyframes moveSphere {
+            0% { transform: translate(0, 0); }
+            50% { transform: translate(100px, -50px); }
+            100% { transform: translate(0, 0); }
+        }
+        @keyframes rotateSpiral {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+
+        .app-container {
+            width: 100%;
+            max-width: 400px;
+            height: 90vh;
+            max-height: 800px;
+            display: flex;
+            flex-direction: column;
+            background: var(--glass-bg);
+            border-radius: 30px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(var(--blur-level));
+            -webkit-backdrop-filter: blur(var(--blur-level));
+            position: relative;
+            overflow: hidden;
+            z-index: 10;
+        }
+        .app-header {
+            background: none;
+            color: var(--text-light);
+            padding: 15px 20px 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .app-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            text-shadow: 0 0 5px var(--neon-pink);
+        }
+        .tab-bar {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            background: none;
+            flex-shrink: 0;
+        }
+        .tab-button {
+            flex-grow: 1;
+            padding: 10px 0;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.6);
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        .tab-button.active {
+            color: var(--neon-blue);
+            font-weight: 600;
+            text-shadow: 0 0 5px var(--neon-blue);
+        }
+        .screen-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px 15px;
+            scrollbar-width: none;
+        }
+        .screen-content::-webkit-scrollbar {
+            display: none;
+        }
+        .search-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .search-container input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: none;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-light);
+            font-size: 16px;
+            outline: none;
+            transition: background 0.3s;
+            backdrop-filter: blur(5px);
+        }
+        .search-container input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .search-container .fa-search {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.6);
+        }
+        .chatbot-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .chatbot-card {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: background 0.3s, transform 0.2s;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+        }
+        .chatbot-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        .chatbot-card img {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 2px solid var(--neon-pink);
+        }
+        .card-details {
+            flex-grow: 1;
+        }
+        .card-details h3 {
+            margin: 0;
+            color: var(--text-light);
+            font-size: 1em;
+            font-weight: 600;
+        }
+        .card-details p {
+            margin: 0;
+            font-size: 0.8em;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .card-action {
+            flex-shrink: 0;
+        }
+        .chat-btn {
+            background: var(--neon-blue);
+            color: var(--dark-bg);
+            padding: 5px 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9em;
+            box-shadow: 0 0 10px var(--neon-blue);
+            transition: all 0.3s;
+        }
+        #friends-tab {
+            text-align: center;
+            padding-top: 50px;
+        }
+        #friends-tab h3 {
+            color: var(--neon-pink);
+            text-shadow: 0 0 5px var(--neon-pink);
+        }
+        #friends-tab .btn {
+            background-color: var(--neon-pink);
+            color: var(--dark-bg);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+        #chat-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--blur-level));
+            -webkit-backdrop-filter: blur(var(--blur-level));
+            display: flex;
+            flex-direction: column;
+            z-index: 20;
+            border-radius: 30px;
+            overflow: hidden;
+        }
+        .chat-header {
+            background: var(--glass-bg);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .chat-header .back-btn {
+            background: none;
+            color: var(--text-light);
+            margin-right: 15px;
+            font-size: 1.2rem;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        .chat-header img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            object-fit: cover;
+            border: 2px solid var(--neon-blue);
+        }
+        .chat-header span {
+            font-size: 1em;
+            font-weight: 600;
+        }
+        #chat-history {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background: none;
+            scroll-behavior: smooth;
+        }
+        .message-bubble {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            margin-bottom: 10px;
+            word-wrap: break-word;
+            clear: both;
+            position: relative;
+            color: var(--text-light);
+            font-size: 0.95em;
+        }
+        .user-message {
+            float: right;
+            background-color: var(--chat-user-bg);
+            border-bottom-right-radius: 5px;
+            backdrop-filter: blur(5px);
+        }
+        .ai-message {
+            float: left;
+            background-color: var(--chat-ai-bg);
+            border-bottom-left-radius: 5px;
+            backdrop-filter: blur(5px);
+        }
+        .ai-message .action-buttons {
+            position: absolute;
+            top: 5px;
+            right: -40px; 
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .ai-message:hover .action-buttons {
+            opacity: 1;
+        }
+        .action-buttons button {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            font-size: 0.8em;
+            padding: 5px;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+            backdrop-filter: blur(3px);
+        }
+        .action-buttons button:hover {
+            background-color: var(--neon-blue);
+            color: var(--dark-bg);
+        }
+        .ai-message .message-text {
+            white-space: pre-wrap; 
+        }
+        .chat-input-area {
+            display: flex;
+            flex-direction: column;
+            padding: 10px 15px 25px; 
+            background: var(--glass-bg);
+            border-top: 1px solid var(--glass-border);
+            flex-shrink: 0;
+        }
+        .input-row {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+        #user-input {
+            flex-grow: 1;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 20px;
+            margin-right: 10px;
+            font-size: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-light);
+            outline: none;
+            backdrop-filter: blur(5px);
+        }
+        #user-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .input-btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        #send-btn, #upload-btn-actual {
+            background-color: var(--neon-pink);
+            color: var(--dark-bg);
+            padding: 10px 15px;
+            border: none;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--neon-pink);
+            transition: all 0.2s;
+        }
+        #upload-btn-actual {
+            background-color: var(--neon-blue);
+            box-shadow: 0 0 10px var(--neon-blue);
+            padding: 10px 13px;
+        }
+        #upload-btn-actual i {
+            font-size: 1.1em;
+        }
+        #image-upload-area {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            margin-top: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        #image-preview {
+            max-width: 60px;
+            max-height: 60px;
+            border-radius: 10px;
+            margin-right: 10px;
+            object-fit: cover;
+            border: 2px solid var(--neon-blue);
+        }
+        #remove-image-btn {
+            background: none;
+            border: none;
+            color: var(--neon-pink);
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+        .hidden { display: none !important; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; }
+        .icon-btn { background: none; color: var(--text-light); padding: 5px; font-size: 1.2rem; transition: color 0.2s; }
+        .icon-btn:hover { color: var(--neon-blue); }
+        .modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            border-radius: 30px;
+        }
+        .modal-content {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(var(--blur-level));
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 350px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+        }
+        .modal-content h3 { color: var(--neon-pink); }
+        .modal-content button { margin: 10px; background: var(--neon-blue); color: var(--dark-bg); font-weight: 600;}
+        .typing-indicator {
+            float: left;
+            background-color: var(--chat-ai-bg);
+            border-radius: 15px;
+            padding: 10px 15px;
+            width: fit-content;
+            margin-bottom: 10px;
+            animation: fadeIn 0.3s;
+            backdrop-filter: blur(5px);
+        }
+        .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: var(--text-light);
+            border-radius: 50%;
+            margin: 0 3px;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @media (max-width: 600px) {
+            .app-container {
+                height: 100vh;
+                max-width: 100%;
+                border-radius: 0;
+                box-shadow: none;
+            }
+            #chat-screen {
+                border-radius: 0;
+            }
+            .ai-message .action-buttons {
+                position: static; 
+                flex-direction: row;
+                margin-top: 5px;
+                opacity: 1;
+                justify-content: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="decoration-sphere sphere-1"></div>
+    <div class="decoration-sphere sphere-2"></div>
+    <div class="decoration-sphere sphere-3"></div>
+    <div class="decoration-spiral spiral-1"></div>
+    <div class="decoration-spiral spiral-2"></div>
+
+
+    <div class="app-container">
+        
+        <div class="app-header">
+            <span class="app-title">All Teachers Chat</span> 
+            <button class="icon-btn" id="share-app-btn" title="यह ऐप शेयर करें">
+                <i class="fas fa-share-alt"></i>
+            </button>
+        </div>
+
+        <div class="tab-bar">
+            <div class="tab-button active" data-tab="home-tab">Teachers</div>
+            <div class="tab-button" data-tab="friends-tab">Friends</div>
+        </div>
+
+        <div class="screen-content">
+
+            <div id="home-tab">
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="ai-search-input" placeholder="Find a Teacher..." onkeyup="filterChatbots()">
+                </div>
+
+                <div class="chatbot-list">
+                    <p style="text-align: center; color: var(--neon-pink);">Teachers लोड हो रहे हैं...</p>
+                </div>
+            </div>
+
+            <div id="friends-tab" class="hidden">
+                <h3 style="color: var(--neon-pink);">Friends (Social Chat)</h3>
+                <p style="color: rgba(255, 255, 255, 0.7);">यह टैब आपके दोस्तों की सूची और उनके साथ चैट/कॉल की सुविधा के लिए आरक्षित है।</p>
+                <p style="color: rgba(255, 255, 255, 0.7);"><strong>जल्द आ रहा है!</strong></p>
+                <div style="margin-top: 20px;">
+                    <button class="btn" style="background-color: var(--neon-pink); color: var(--dark-bg);">
+                        <i class="fas fa-user-plus"></i> Find New Friends
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="language-modal" class="modal hidden">
+            <div class="modal-content">
+                <h3 style="color: var(--neon-pink);">भाषा चुनें (Select Language)</h3>
+                <p style="color: rgba(255, 255, 255, 0.8);">इस AI टीचर से बात करने के लिए अपनी पसंदीदा भाषा चुनें।</p>
+                <button class="btn" data-lang="English">Chat in English</button>
+                <button class="btn" data-lang="Hindi">Chat in Hindi</button>
+            </div>
+        </div>
+
+        <div id="chat-screen" class="hidden">
+            <div class="chat-header">
+                <button class="icon-btn back-btn" id="back-to-tabs-btn">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <img id="chat-bot-image" src="" alt="AI Image">
+                <span id="chat-bot-name"></span>
+                <button class="icon-btn" id="delete-chat-btn" title="सभी चैट हटाएं" style="margin-left: auto; color: var(--neon-pink);">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+            <div id="chat-history">
+                </div>
+            <div class="chat-input-area">
+                <div id="image-upload-area" class="hidden">
+                    <img id="image-preview" src="" alt="Image Preview">
+                    <button id="remove-image-btn" title="फोटो हटाएं">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="input-row">
+                    <input type="text" id="user-input" placeholder="अपना संदेश टाइप करें या फोटो के बारे में पूछें...">
+                    <div class="input-btn-group">
+                        <input type="file" id="image-file-input" accept="image/*" class="hidden">
+                        <button id="upload-btn-actual" title="फोटो अपलोड करें" onclick="document.getElementById('image-file-input').click()">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                        <button id="send-btn" title="भेजें">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- API KEY & CONFIG ---
+        const YOUR_SITE_URL = window.location.href; 
+        const TEXT_MODEL = 'mistralai/mistral-7b-instruct:free'; // For text chat
+        const VISION_MODEL = 'google/gemini-2.5-flash'; 
+        const OPENROUTER_ENDPOINT = '/api/chat'; 
+        // ----------------------------------------
+
+        let currentChatbot = null;
+        let selectedLanguage = null;
+        let uploadedImageBase64 = null; 
+        
+        let ANONYMOUS_USER_ID = null; 
+        
+        const LANGUAGE_PROMPTS = {
+            'English': 'You are a helpful and friendly AI assistant. Always respond in English. ',
+            'Hindi': 'आप एक सहायक और मिलनसार एआई सहायक हैं। हमेशा हिंदी में जवाब दें। ',
+        };
+        
+        function getUniqueUserId() {
+            let userId = localStorage.getItem('uniqueChatUserId');
+            if (!userId) {
+                userId = 'anon_' + Date.now() + Math.random().toString(36).substring(2, 9);
+                localStorage.setItem('uniqueChatUserId', userId);
+            }
+            return userId;
+        }
+
+        ANONYMOUS_USER_ID = getUniqueUserId();
+        
+        // --- Hardcoded Teachers Data (Same as before) ---
+        const CHATBOTS = {
+            'english_teach': {
+                name: 'English Teacher (Bilingual)',
+                instruction: 'You are an expert English language teacher. Your goal is to help the user learn and practice English grammar, vocabulary, and conversation. Since the user may ask in Hindi, always respond in the language the user used (Hindi or English), but keep the teaching material related to English. Keep your tone encouraging and educational.',
+                imageUrl: 'https://img.icons8.com/color/48/000000/united-kingdom-circular.png', // Image: UK Flag
+            },
+            'hindi_teach': {
+                name: 'Hindi Teacher (हिंदी गुरु)',
+                instruction: 'आप एक विशेषज्ञ हिंदी भाषा शिक्षक हैं। आपका लक्ष्य उपयोगकर्ता को हिंदी व्याकरण, शब्दावली, मुहावरे और लेखन में मदद करना है। हमेशा हिंदी में जवाब दें और आपकी भाषा शुद्ध और विनम्र होनी चाहिए।',
+                imageUrl: 'https://img.icons8.com/color/48/000000/india-circular.png', // Image: India Flag
+            },
+            'math_teach': {
+                name: 'Math Teacher (गणित विशेषज्ञ)',
+                instruction: 'You are an advanced Math teacher. Explain complex math problems step-by-step, starting from basic arithmetic to calculus. Use clear and precise mathematical notation. Respond to the user in their language (Hindi or English).',
+                imageUrl: 'https://img.icons8.com/fluency/48/000000/math.png', // Image: Math icon
+            },
+            'gk_teach': {
+                name: 'G.K. & Current Affairs Teacher',
+                instruction: 'You are a General Knowledge teacher, specializing in current affairs, history, politics, and general facts. Provide accurate and up-to-date information concisely. Respond in the user\'s language.',
+                imageUrl: 'https://img.icons8.com/fluency/48/000000/globe.png', // Image: Globe icon
+            },
+            'geography_teach': {
+                name: 'Geography Teacher (भूगोल विशेषज्ञ)',
+                instruction: 'You are an expert in world geography, mapping, geology, and climate science. Answer questions about any place on Earth, its culture, and its physical features. Respond in the user\'s language.',
+                imageUrl: 'https://img.icons8.com/fluency/48/000000/map-marker.png', // Image: Map Marker icon
+            },
+            'science_teach': {
+                name: 'Science Teacher (विज्ञान शिक्षक)',
+                instruction: 'You are a general science teacher, covering Physics, Chemistry, and Biology. Explain scientific concepts clearly, provide real-world examples, and simplify complex theories. Respond in the user\'s language.',
+                imageUrl: 'https://img.icons8.com/fluency/48/000000/scientific-experiment.png', // Image: Science icon
+            },
+            'history_teach': {
+                name: 'History Teacher (इतिहास गुरु)',
+                instruction: 'You are a History teacher specializing in global and Indian history. Describe historical events, figures, and eras accurately and objectively. Keep your answers detailed but structured with timelines and key facts. Respond in the user\'s language.',
+                imageUrl: 'https://img.icons8.com/fluency/48/000000/historical-monument.png', // Image: History icon
+            },
+            'computer_teach': {
+                name: 'Computer & Coding Teacher',
+                instruction: 'You are a Computer Science and Programming teacher. Explain coding concepts (Python, JS, HTML etc.), help debug simple code, and answer questions about technology and software. Use code blocks for programming examples. Respond in the user\'s language.',
+                imageUrl: 'https://img.icons8.com/fluency/48/000000/laptop.png', // Image: Laptop icon
+            },
+            'recipe_bot': {
+                name: 'Kitchen Recipe Master (रसोई मास्टर)',
+                instruction: 'You are a recipe generator and cooking assistant. Provide clear, step-by-step instructions for any dish, suggest substitutions, and answer cooking-related questions. Always provide the recipe name in both Hindi and English. Your tone is helpful and encouraging.',
+                imageUrl: 'https://img.icons8.com/fluency/48/000000/chef-hat.png', // Image: Chef icon
+            },
+            'note_maker': {
+                name: 'Note Maker / Summarizer',
+                instruction: 'You are a Note Maker and summarizer bot. Your primary function is to take a block of text provided by the user and summarize it into 5 key bullet points, or rewrite it into structured, easy-to-read notes. If the user asks for new content, write a comprehensive, well-structured article on that topic. Respond in the user\'s language.',
+                imageUrl: 'https://img.icons8.com/fluency/48/000000/note.png', // Image: Note icon
+            },
+        };
+        // ----------------------------------------
+
+        // --- All the JavaScript functions (loadChatbots, openChatScreen, sendMessage, etc.) are the same as before, 
+        //     calling the secure /api/chat endpoint. I have kept only the structure for brevity. ---
+
+        // --- Core Functions ---
+
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const targetTab = button.dataset.tab;
+                
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                document.querySelectorAll('.screen-content > div').forEach(screen => screen.classList.add('hidden'));
+                document.getElementById(targetTab).classList.remove('hidden');
+            });
+        });
+
+        function loadChatbots() {
+            const listElement = document.querySelector('.chatbot-list');
+            listElement.innerHTML = ''; 
+
+            if (!CHATBOTS || Object.keys(CHATBOTS).length === 0) {
+                 listElement.innerHTML = '<p style="text-align: center; color: rgba(255, 255, 255, 0.7);">अभी कोई AI दोस्त उपलब्ध नहीं है।</p>';
+                 return;
+             }
+             
+             Object.keys(CHATBOTS).forEach(key => {
+                 const bot = CHATBOTS[key];
+                 const card = document.createElement('div');
+                 card.className = 'chatbot-card';
+                 card.dataset.id = key; 
+                 card.innerHTML = `
+                     <img src="${bot.imageUrl || 'https://placehold.co/50x50/FF69B4/1A0B2E?text=AI'}" onerror="this.onerror=null; this.src='https://placehold.co/50x50/FF69B4/1A0B2E?text=AI';" alt="${bot.name}">
+                     <div class="card-details">
+                         <h3>${bot.name}</h3>
+                         <p>${bot.instruction.substring(0, 50)}...</p>
+                     </div>
+                     <div class="card-action">
+                         <button class="chat-btn">Chat</button>
+                     </div>
+                 `;
+                 listElement.appendChild(card);
+             });
+            
+            document.querySelector('.chatbot-list').addEventListener('click', (e) => {
+                const card = e.target.closest('.chatbot-card');
+                if (card) {
+                    const botId = card.dataset.id;
+                    currentChatbot = CHATBOTS[botId];
+                    currentChatbot.id = botId; 
+                    document.getElementById('language-modal').classList.remove('hidden');
+                }
+            });
+        }
+        
+        function filterChatbots() {
+            const searchInput = document.getElementById('ai-search-input').value.toLowerCase();
+            document.querySelectorAll('.chatbot-list .chatbot-card').forEach(card => {
+                const name = card.querySelector('h3').textContent.toLowerCase();
+                const instruction = card.querySelector('p').textContent.toLowerCase();
+                
+                if (name.includes(searchInput) || instruction.includes(searchInput)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function openChatScreen() {
+            if (!currentChatbot || !selectedLanguage) return;
+
+            document.querySelector('.tab-bar').classList.add('hidden');
+            document.querySelector('.screen-content').classList.add('hidden');
+            document.getElementById('chat-screen').classList.remove('hidden');
+
+            document.getElementById('chat-bot-image').src = currentChatbot.imageUrl;
+            document.getElementById('chat-bot-name').textContent = `${currentChatbot.name}`;
+            
+            resetImageUpload(); 
+            loadChatHistory(ANONYMOUS_USER_ID);
+        }
+
+        function resetImageUpload() {
+            uploadedImageBase64 = null;
+            document.getElementById('image-file-input').value = '';
+            document.getElementById('image-preview').src = '';
+            document.getElementById('image-upload-area').classList.add('hidden');
+            document.getElementById('user-input').placeholder = selectedLanguage === 'Hindi' ? "अपना संदेश टाइप करें या फोटो के बारे में पूछें..." : "Type your message or ask about a photo...";
+        }
+        
+        function loadChatHistory(userId) {
+            const historyKey = `chat_history_${currentChatbot.id}_${userId}`;
+            const storedHistory = localStorage.getItem(historyKey);
+            const chatHistoryElement = document.getElementById('chat-history');
+            chatHistoryElement.innerHTML = ''; 
+            
+            let history = storedHistory ? JSON.parse(storedHistory) : [];
+            let hasHistory = history.length > 0;
+            
+            if (hasHistory) {
+                history.forEach(msg => {
+                    appendMessage(msg.role, msg.content, false, msg.imageContent); 
+                });
+            } else {
+                const welcomeMsg = currentChatbot.name.includes('Teacher') ? 
+                    `नमस्ते! मैं ${currentChatbot.name} हूँ। मैं ${selectedLanguage} में आपकी मदद करने के लिए तैयार हूँ। आप मुझे किसी फोटो की जानकारी भी पूछ सकते हैं।` :
+                    `नमस्ते! मैं ${currentChatbot.name} हूँ। मैं ${selectedLanguage} में आपकी मदद करने के लिए तैयार हूँ।`;
+                appendMessage('ai', welcomeMsg, false); 
+            }
+            scrollToBottom();
+        }
+
+        function saveMessage(role, content, imageBase64) {
+            const userId = ANONYMOUS_USER_ID;
+            const historyKey = `chat_history_${currentChatbot.id}_${userId}`;
+            let history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+            
+            const dataToSave = {
+                role: role,
+                content: content,
+                timestamp: new Date().toISOString()
+            };
+            if (imageBase64) {
+                dataToSave.imageContent = imageBase64;
+            }
+            history.push(dataToSave);
+            
+            if (history.length > 20) {
+                history = history.slice(-20);
+            }
+            
+            localStorage.setItem(historyKey, JSON.stringify(history));
+        }
+
+
+        function appendMessage(role, content, save = true, imageBase64 = null) {
+            const chatHistory = document.getElementById('chat-history');
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble ' + (role === 'user' ? 'user-message' : 'ai-message');
+            
+            let messageContentHTML = '';
+
+            if (imageBase64) {
+                messageContentHTML += `<img src="${imageBase64}" style="max-width:100%; height:auto; border-radius:10px; margin-bottom: 10px;">`;
+                messageContentHTML += `<p style="margin: 0; padding-top: 5px; border-top: 1px solid rgba(255, 255, 255, 0.2);">${content}</p>`;
+            } else {
+                messageContentHTML = `<span class="message-text" style="white-space: pre-wrap;">${content}</span>`;
+            }
+
+            if (role === 'ai') {
+                bubble.innerHTML = `${messageContentHTML}
+                    <div class="action-buttons">
+                        <button class="copy-btn" title="कॉपी करें" data-content="${content.replace(/"/g, '&quot;')}" onclick="handleCopy(this)"><i class="fas fa-copy"></i></button>
+                        <button class="share-btn" title="शेयर करें" data-content="${content.replace(/"/g, '&quot;')}" onclick="handleShare(this)"><i class="fas fa-share-alt"></i></button>
+                    </div>`;
+            } else {
+                bubble.innerHTML = messageContentHTML;
+            }
+
+            chatHistory.appendChild(bubble);
+
+            if (save && currentChatbot) {
+                saveMessage(role, content, imageBase64);
+            }
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            const history = document.getElementById('chat-history');
+            history.scrollTop = history.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const chatHistory = document.getElementById('chat-history');
+            hideTypingIndicator(); 
+
+            const indicator = document.createElement('div');
+            indicator.id = 'typing-indicator';
+            indicator.className = 'typing-indicator';
+            indicator.innerHTML = `
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            `;
+            chatHistory.appendChild(indicator);
+            scrollToBottom();
+        }
+
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        // --- Send Message and API Call (NOW CALLS VERCEL PROXY) ---
+        async function sendMessage() {
+            const input = document.getElementById('user-input');
+            const userMessage = input.value.trim();
+            const isVisionRequest = uploadedImageBase64 !== null;
+
+            if (!userMessage && !isVisionRequest) return;
+
+            input.value = '';
+            input.disabled = true;
+            document.getElementById('send-btn').disabled = true;
+            document.getElementById('upload-btn-actual').disabled = true;
+            
+            const displayMessage = userMessage || (selectedLanguage === 'Hindi' ? 'इस फोटो का विश्लेषण करें।' : 'Analyze this image.');
+            appendMessage('user', displayMessage, true, uploadedImageBase64);
+            
+            showTypingIndicator();
+
+            try {
+                // LocalStorage से हिस्ट्री लोड करें
+                const historyKey = `chat_history_${currentChatbot.id}_${ANONYMOUS_USER_ID}`;
+                let history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+                
+                let messages = [];
+                let modelToUse = isVisionRequest ? VISION_MODEL : TEXT_MODEL; 
+                
+                // 1. System Instruction (Personality + Language)
+                const systemInstructionText = `<<SYS>>${LANGUAGE_PROMPTS[selectedLanguage]}${currentChatbot.instruction}<</SYS>>`;
+                
+                messages.push({
+                    role: 'system',
+                    content: systemInstructionText
+                });
+
+                // 2. Context History (Last 10 messages from LocalStorage)
+                if (history && history.length > 0) {
+                    const startSlice = history.length > 0 && history[0].role === 'ai' && history[0].content.includes('नमस्ते') ? 1 : 0;
+                    const contextMessages = history.slice(startSlice, -1) 
+                                                  .slice(-10); 
+                    
+                    contextMessages.forEach(msg => {
+                         if (msg.role === 'user' || msg.role === 'ai') {
+                             messages.push({
+                                role: msg.role === 'user' ? 'user' : 'assistant',
+                                content: msg.content
+                             });
+                         }
+                    });
+                }
+
+                // 3. Add the new user message (Text + Optional Image Payload)
+                let newUserContent = [];
+                
+                if (isVisionRequest) {
+                    newUserContent.push({
+                        type: "image_url",
+                        image_url: {
+                            url: uploadedImageBase64,
+                        }
+                    });
+                }
+                
+                newUserContent.push({
+                    type: "text",
+                    text: userMessage || (selectedLanguage === 'Hindi' ? 'कृपया इस फोटो के बारे में बताएं।' : 'Please describe this image.')
+                });
+                
+                messages.push({
+                    role: 'user',
+                    content: newUserContent.length === 1 && !isVisionRequest ? newUserContent[0].text : newUserContent
+                });
+                
+                // Reset image state immediately after use
+                resetImageUpload();
+
+                // API Call (Now calling the Vercel Proxy Endpoint)
+                const response = await fetch(OPENROUTER_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        "model": modelToUse,
+                        "messages": messages,
+                        "user": ANONYMOUS_USER_ID 
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || data.error) {
+                    const errorMessage = data.error ? (data.error.message || JSON.stringify(data.error)) : 'Unknown API Failure';
+                    throw new Error(errorMessage);
+                }
+                
+                let rawAiResponse = data.choices[0].message.content;
+
+                let aiResponse = rawAiResponse.replace(/<\/?s>/g, '').replace(/\[\/?INST\]/g, '').replace(/<<SYS>>[\s\S]*?<\/>>/g, '').trim(); 
+
+                hideTypingIndicator();
+                appendMessage('ai', aiResponse, true); 
+
+            } catch (error) {
+                hideTypingIndicator();
+                let finalErrorMessage = `Error: API कॉल विफल रही। (त्रुटि: ${error.message}). सुनिश्चित करें कि Vercel में OPENROUTER_API_KEY सेट है।`;
+                
+                if (error.message.includes("404")) {
+                     finalErrorMessage = `Error: Vercel API Route (/api/chat) नहीं मिली। सुनिश्चित करें कि आपने 'api/chat.js' फ़ाइल बनाई है।`;
+                }
+                
+                appendMessage('ai', finalErrorMessage, false); 
+                console.error("OpenRouter API Error:", error);
+                resetImageUpload(); 
+            } finally {
+                input.disabled = false;
+                document.getElementById('send-btn').disabled = false;
+                document.getElementById('upload-btn-actual').disabled = false;
+                input.focus();
+            }
+        }
+        
+        function deleteAllChat() {
+            if (!currentChatbot) return;
+
+            const confirmMessage = selectedLanguage === 'Hindi' ? 
+                'क्या आप सचमुच इस AI शिक्षक के साथ अपनी सारी चैट हटाना चाहते हैं? यह कार्रवाई वापस नहीं ली जा सकती।' :
+                'Are you sure you want to delete all chat history with this AI teacher? This action cannot be undone.';
+                
+            const successMessage = selectedLanguage === 'Hindi' ? 
+                'चैट हिस्ट्री सफलतापूर्वक हटा दी गई है। एक नई बातचीत शुरू करें!' : 
+                'Chat history successfully deleted. Start a new conversation!';
+
+            if (confirm(confirmMessage)) {
+                const historyKey = `chat_history_${currentChatbot.id}_${ANONYMOUS_USER_ID}`;
+                localStorage.removeItem(historyKey);
+                
+                document.getElementById('chat-history').innerHTML = '';
+                appendMessage('ai', successMessage, false); 
+                alert(selectedLanguage === 'Hindi' ? 'चैट हिस्ट्री हटा दी गई!' : 'Chat history deleted!');
+            }
+        }
+
+        document.getElementById('image-file-input').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    uploadedImageBase64 = e.target.result;
+                    
+                    const preview = document.getElementById('image-preview');
+                    preview.src = uploadedImageBase64;
+                    document.getElementById('image-upload-area').classList.remove('hidden');
+                    
+                    document.getElementById('user-input').placeholder = selectedLanguage === 'Hindi' ? "फोटो के बारे में कुछ पूछें..." : "Ask something about the photo...";
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('remove-image-btn').addEventListener('click', resetImageUpload);
+
+        function handleCopy(button) {
+            const content = button.dataset.content;
+            navigator.clipboard.writeText(content).then(() => {
+                alert('AI जवाब कॉपी हो गया!');
+            }).catch(err => {
+                console.error('Copy failed:', err);
+                prompt('इस जवाब को कॉपी करने के लिए CTRL+C (या Cmd+C) दबाएं:', content);
+            });
+        }
+
+        function handleShare(button) {
+            const content = button.dataset.content;
+            const shareText = `AI Teacher Chat से एक विचार:\n\n"${content}"\n\n- ${currentChatbot.name}`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'All Teachers Chat App',
+                    text: shareText,
+                    url: YOUR_SITE_URL,
+                }).catch(error => console.error('Sharing failed:', error));
+            } else {
+                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + YOUR_SITE_URL)}`;
+                window.open(whatsappUrl, '_blank');
+            }
+        }
+        
+        document.getElementById('share-app-btn').addEventListener('click', () => {
+            const shareTitle = "All Teachers Chat App";
+            const shareText = "इस अद्भुत AI Teacher Chat App को देखें! आप यहाँ विभिन्न AI शिक्षकों से बात कर सकते हैं।";
+            const shareUrl = YOUR_SITE_URL; 
+
+            if (navigator.share) {
+                navigator.share({
+                    title: shareTitle,
+                    text: shareText,
+                    url: shareUrl
+                }).catch(error => console.error('Sharing failed:', error));
+            } else {
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    alert('ऐप लिंक कॉपी हो गया है: ' + shareUrl);
+                }).catch(err => {
+                    prompt('ऐप लिंक कॉपी करने के लिए CTRL+C (या Cmd+C) दबाएं:', shareUrl);
+                });
+            }
+        });
+
+
+        document.querySelectorAll('#language-modal button').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                selectedLanguage = e.target.dataset.lang;
+                document.getElementById('language-modal').classList.add('hidden');
+                openChatScreen();
+            });
+        });
+        
+        document.getElementById('back-to-tabs-btn').addEventListener('click', () => {
+            document.getElementById('chat-screen').classList.add('hidden');
+            document.querySelector('.tab-bar').classList.remove('hidden');
+            document.querySelector('.screen-content').classList.remove('hidden');
+            currentChatbot = null;
+            selectedLanguage = null;
+            resetImageUpload(); 
+            
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('[data-tab="home-tab"]').classList.add('active');
+            document.getElementById('friends-tab').classList.add('hidden');
+            document.getElementById('home-tab').classList.remove('hidden');
+        });
+
+        document.getElementById('send-btn').addEventListener('click', sendMessage);
+        document.getElementById('user-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault(); 
+                sendMessage();
+            }
+        });
+        
+        document.getElementById('delete-chat-btn').addEventListener('click', deleteAllChat);
+
+        window.filterChatbots = filterChatbots;
+        window.handleCopy = handleCopy;
+        window.handleShare = handleShare;
+
+        window.onload = loadChatbots;
+    </script>
+</body>
+</html>
